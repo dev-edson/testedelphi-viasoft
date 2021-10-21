@@ -1,0 +1,292 @@
+Olá, Edson Simões Pereira
+Obrigado por se interessar em fazer parte do time Viasoft
+
+Para continuar o processo de candidatura, por gentileza, responda o teste abaixo.
+
+Nossa empresa foi contratada para administrar o banco de dados de um sistema online de pedidos. 
+O cliente definiu que devemos utilizar algum dos seguintes bancos de dados: Firebird, Oracle, MySQL.
+
+
+
+Exercicio 1
+	
+As seguintes funcionalidades foram solicitadas pelo cliente e deverão ser descritos os scripts em baixo 
+de cada questão:
+
+1. Criar um banco de dados chamado VIASOFT, é opcional descrever o comando de criação aqui.
+
+	CREATE DATABASE viasoft;
+	USE viasoft;
+
+2. Devemos criar uma tabela para armazenar as informações básicas de nossos clientes. 
+Sendo assim gostaríamos de armazenar o nome, cpf e telefone dos nossos clientes, 
+e todas essas informações devem ser obrigatórias.
+
+	CREATE TABLE clientes(
+	codigo int(4) AUTO_INCREMENT,
+	nome varchar(30) NOT NULL,
+	cpf varchar(11)  NOT NULL,
+	cpf varchar(11)  NOT NULL,
+	PRIMARY KEY (codigo)
+);
+
+3. Criar uma tabela para armazenar as informações dos produtos. 
+Nessa tabela deve ser armazenada a descrição do produto que não pode ser nula e deve armazenar no máximo 100 caracteres, 
+e por fim uma coluna que armazene o valor unitário do produto que também deve ser obrigatório.
+
+
+
+	CREATE TABLE produtos(
+	codigo int(4) AUTO_INCREMENT,
+	descricaoProduto(100) NOT NULL,
+	valorUnitario double NOT NULL,
+	PRIMARY KEY (codigo)
+);
+
+
+4. Para armazenar as informações dos pedidos, precisamos criar duas novas tabelas, uma com o cabeçalho do pedido e outra com os itens do pedido.
+Na tabela de cabeçalho devemos armazenar o código do cliente, e a data que o pedido foi emitido, 
+importante notar é que todos os campos dessa tabela devem ser obrigatórios. 
+Já na tabela de itens do pedido deve ser armazenado o código do pedido e o código do item, o valor unitário do item, 
+a quantidade de itens adquiridos na compra e um percentual de desconto no item da compra, apenas o percentual de desconto pode ser nulo.
+
+	CREATE TABLE pedidos (
+	idpedido int(11) NOT NULL AUTO_INCREMENT,
+	dt_emissao date NOT NULL,
+	cliente int(11) NOT NULL,
+	PRIMARY KEY (idpedido),
+	KEY fk_clientes_idx (cliente),
+	CONSTRAINT fk_clientes FOREIGN KEY (cliente) REFERENCES clientes (idcliente)
+);
+
+
+	CREATE TABLE pedidos_itens (
+	  iditem int(11) NOT NULL AUTO_INCREMENT,
+	  pedido int(11) NOT NULL,
+	  produto int(11) NOT NULL,
+	  qtd int(11) NOT NULL,
+	  valor_unitario double NOT NULL,
+	  percentual_desconto double DEFAULT NULL,
+	  PRIMARY KEY (iditem),
+	  KEY fk_pedido_idx (pedido),
+	  KEY fk_produto_idx (produto),
+	  CONSTRAINT fk_pedido FOREIGN KEY (pedido) REFERENCES pedidos (idpedido) ON DELETE CASCADE,
+	  CONSTRAINT fk_produto FOREIGN KEY (produto) REFERENCES produtos (idproduto)
+);
+
+
+
+Exercicio 3:
+
+
+
+Retorne uma lista dos clientes que contém “ari” no nome.
+
+
+	SELECT * FROM CLIENTES
+	 WHERE NOMECLIENTE LIKE '%ari%'
+
+
+2. Retorne uma lista dos clientes que começam com o nome “ma”.
+
+	SELECT * FROM CLIENTES
+	 WHERE NOMECLIENTE LIKE 'ma%'
+
+
+3. Retorne uma lista dos clientes que terminem com o nome “ula”.
+
+	SELECT * FROM CLIENTES
+	 WHERE NOMECLIENTE LIKE '%ula'
+
+
+4. Retorne uma lista dos clientes concatenando o código do mesmo com o nome, separando por hífen.
+
+	SELECT 
+	    CONCAT_WS(
+	        '-',
+	        idcliente,
+	        nomecliente
+	    ) AS nome 
+	FROM clientes
+
+5. 5. Retorne uma lista dos clientes concatenando o nome da coluna com o valor da mesma. Ex: ‘ID_CLIENTE: 1’, ’NOME: Jóse‘...
+
+	SELECT 
+	    CONCAT(
+	        'idcliente: ',idcliente,  
+	        '   nomecliente: ',nomecliente 
+	    ) AS nome 
+	FROM clientes
+
+6. Retorne uma lista com o nome e telefone dos clientes que possuem pedidos, distinguindo os resultados retornados?
+
+
+	SELECT DISTINCT A.nomeCliente, A.telefone
+	FROM clientes A, pedidos B
+	WHERE A.idcliente = B.cliente
+
+7. Retorne uma lista com a descrição e valor unitário do item do pedido que tenham vínculos com pedidos, 
+ordenando a lista por valor unitário de forma decrescente.
+
+
+	SELECT A.produto_descricao, B.valor_unitario
+		FROM PRODUTOS A
+		INNER JOIN pedidos_itens B
+		ON (A.idproduto = B.produto)
+		INNER JOIN pedidos C
+		ON (B.pedido = C.idpedido)
+	ORDER BY B.valor_unitario DESC
+
+
+8. Retorne uma lista com o nome dos clientes e a quantidade de pedidos de cada um, ordenado a lista pelos clientes que mais possuem pedidos?
+
+	SELECT A.nomeCliente, A.telefone, COUNT(B.idpedido) AS totalPedido
+		FROM clientes A, pedidos B
+		WHERE A.idcliente = B.cliente
+	GROUP BY A.nomecliente
+	ORDER BY totalpedido DESC
+
+
+9. Retorne uma lista de todos os pedidos realizados, contando a quantidade de itens de cada pedido.
+
+
+	SELECT B.idpedido , C.nomeCliente, COUNT(a.iditem) AS total_Itens 
+		FROM pedidos_itens A
+		INNER JOIN pedidos B
+		ON (A.pedido = B.idpedido)
+		INNER JOIN clientes C
+		ON (B.cliente = C.idcliente)
+	GROUP BY B.idpedido
+
+
+
+10. Quantidade de pedidos sem desconto aplicado.
+
+
+	SELECT B.idpedido , C.nomeCliente, A.desconto  
+	FROM pedidos_itens A
+	INNER JOIN pedidos B
+	ON (A.pedido = B.idpedido)
+	INNER JOIN clientes C
+	ON (B.cliente = C.idcliente)
+	WHERE A.desconto IS NULL
+
+11. Quantidade de pedidos com desconto aplicado.
+
+
+	SELECT B.idpedido , C.nomeCliente, A.desconto  
+	FROM pedidos_itens A
+	INNER JOIN pedidos B
+	ON (A.pedido = B.idpedido)
+	INNER JOIN clientes C
+	ON (B.cliente = C.idcliente)
+	WHERE A.desconto IS NOT NULL
+
+12. Faça um update no banco de dados na coluna de desconto da tabela de itens do pedido, defina o valor 0 quando o valor do desconto for nulo.
+
+
+	UPDATE pedidos_itens
+	SET desconto = 0
+	WHERE desconto IS null
+
+13. Realize um alter table na tabela de pedido item, definindo a coluna de desconto como not null.
+
+
+	ALTER TABLE PEDIDOS_ITENS
+	MODIFY DESCONTO DOUBLE NOT NULL
+
+
+14. Retorne uma lista de todos os pedidos realizados, somando o valor total de todos os itens do pedido, 
+    multiplicando pela quantidade e aplicando o desconto.
+
+
+	SELECT pedido,
+	       SUM(valor_unitario*qtd) AS total, 
+	       SUM((valor_unitario*qtd)*desconto/100) AS desconto, 
+	       SUM(valor_unitario*qtd) - SUM((valor_unitario*qtd)*desconto/100) AS valor_liquido
+	FROM pedidos_itens
+	GROUP BY pedido
+
+15. Retorne o valor médio dos pedidos por cliente.
+
+
+	SELECT a.cliente, a.idpedido, AVG(B.valor_unitario*B.qtd) AS media
+        	FROM pedidos A
+        	INNER JOIN pedidos_itens B ON (a.idpedido = b.pedido)
+	GROUP BY a.cliente 
+
+
+16. Qual foi o item mais vendido?
+
+
+select count(*) as qtd, produtos.idproduto as id_produto, produtos.produto_descricao as nome_produto 
+from produtos 
+	join pedidos_itens on pedidos_itens.produto = produtos.idproduto 
+	join pedidos on pedidos.idpedido = pedidos_itens.pedido 
+group by idproduto 
+order by qtd 
+desc LIMIT 1
+
+	Item mais vendido: Item 1, quantidde 6, joelheira.
+
+
+17. Que pedido teve o maior valor?
+
+	SELECT a.pedido,
+	       SUM(a.valor_unitario*a.qtd) AS total, 
+	       SUM((a.valor_unitario*a.qtd)*a.desconto/100) AS desconto, 
+	       SUM(a.valor_unitario*a.qtd) - SUM((a.valor_unitario*a.qtd)*a.desconto/100) AS valor_liquido
+	FROM pedidos_itens A
+  	INNER JOIN pedidos B ON (a.pedido = b.idpedido)
+	GROUP BY a.pedido
+	ORDER BY 2 DESC LIMIT 1
+
+	pedido com maior valor: Pedido 6, valor liquido R$ 416,50
+
+18. Qual o resultado da soma de todos os pedidos considerando o desconto aplicado?
+
+	SELECT SUM(a.valor_unitario*a.qtd) - SUM((a.valor_unitario*a.qtd)*a.desconto/100) AS TotalPedidos
+	FROM pedidos_itens A
+
+	Total dos pedidos  = R$ 1.789,85
+
+19. Qual o valor total de descontos concedidos?
+
+	SELECT SUM((a.valor_unitario*a.qtd)*a.desconto/100) AS totalDesconto
+	FROM pedidos_itens A
+
+	Total dos descontos  = R$ 217,85
+
+20 . Em qual data foi emitido mais pedidos?
+
+	SELECT 
+	    P.dt_emissao,
+	    count(*) AS 'Quantidade'
+	FROM
+	    pedidos P
+	GROUP BY P.dt_emissao
+	ORDER BY 2 DESC LIMIT 1
+
+
+	Data que mais emitiu pedido: dt_emissao: 2019-03-05 Qtd: 3
+
+
+21. Qual foi o segundo dia que mais pedidos foram emitidos?
+
+
+	SELECT 
+	    P.dt_emissao,
+	    count(*) AS 'Quantidade'
+	FROM
+	    pedidos P
+	GROUP BY P.dt_emissao
+	ORDER BY 2 DESC LIMIT 2
+
+
+	Segundo dia que mais emitiu pedido: dt_emissao: 2019-03-13 Qtd: 2
+
+
+
+
+
+
